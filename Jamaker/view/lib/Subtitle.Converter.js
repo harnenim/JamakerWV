@@ -3081,6 +3081,7 @@ AssEvent.parseKaraoke = function(text, style, playResX=1920, playResY=1080) {
 	}
 	const div = Subtitle.div;
 	div.style.fontFamily = style.Fontname;
+	div.style.fontWeight = style.Bold ? "bold" : "";
 	div.style.fontSize = `${ style.Fontsize * Subtitle.getFontRatio(style.Fontname) / (25.5 * 1.001) * 19.2 }px`;
 	div.innerHTML = html;
 	
@@ -3184,7 +3185,7 @@ AssFile.prototype.automation = function(styleName, func, withOrigin=false) {
 		let kStart = origin.start;
 		e.ks.forEach((k) => {
 			eval(func);
-			kStart = origin.start + k.time * 10;
+			kStart += k.time * 10;
 		});
 	});
 	this.getEvents().body = events;

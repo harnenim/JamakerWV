@@ -5725,23 +5725,30 @@ window.setAssKaraokeFromSmi = function(kf=false) {
 			let text = "";
 			let step = -1;
 			const attrs = Smi.toAttrs(lines[i]);
-			let last = null;
+			let lastFc = ""; // 비활성 색상 확인
+			for (let j = attrs.length - 1; j >= 0; j--) {
+				if (attrs[j].text) {
+					lastFc = attrs[j].fc;
+					break;
+				}
+			}
 			attrs.forEach((attr) => {
 				if (attr.attrs) {
 					// RUBY 태그는 이중으로 들어감
 					attr.attrs.forEach((attr) => {
-						if (step < 0 && attr.text && last && last.fc != attr.fc) {
+						if (step < 0 && attr.text && lastFc == attr.fc) {
 							step = text.length;
 						}
-						text += (last = attr).text;
+						text += attr.text;
 					});
 				} else if (attr.text) {
-					if (step < 0 && attr.text && last && last.fc != attr.fc) {
+					if (step < 0 && attr.text && lastFc == attr.fc) {
 						step = text.length;
 					}
-					text += (last = attr).text;
+					text += attr.text;
 				}
 			});
+
 			lines[i] = { attrs: attrs, text: text, step: (step < 0 ? 0 : step) };
 		}
 		let keep = (group.lines.length == lines.length);
@@ -5837,16 +5844,17 @@ window.setAssKaraokeFromSmi = function(kf=false) {
 				group.smis[group.smis.length - 1].steps[i] = line.text.length;
 			}
 		});
-		const start = group.smis[0].start;
+		let lastStart = group.smis[0].start;
 		let lastSteps = [];
 		group.lines.forEach((line) => { lastSteps.push(0); });
 		let steps = group.smis[0].steps;
 		group.smis.forEach((smi) => {
 			group.lines.forEach((line, i) => {
 				if (steps[i] < smi.steps[i]) {
-					line.kText += `{\\${k}${ Math.round((smi.start - start) / 10) }}` + line.text.substring(lastSteps[i], steps[i]);
+					line.kText += `{\\${k}${Math.round((smi.start - lastStart) / 10) }}` + line.text.substring(lastSteps[i], steps[i]);
 					lastSteps[i] = steps[i];
 					steps[i] = smi.steps[i];
+					lastStart = smi.start;
 				}
 			});
 		});
@@ -5861,9 +5869,9 @@ window.setAssKaraokeFromSmi = function(kf=false) {
 			}
 			const remains = line.text.substring(lastSteps[i]);
 			if (remains) {
-				let length = group.smis[group.smis.length - 1].start - start;
+				let length = group.smis[group.smis.length - 1].start - lastStart;
 				if (g + 1 < groups.length) {
-					length = groups[g + 1].smis[0].start - start;
+					length = groups[g + 1].smis[0].start - lastStart;
 				}
 				line.kText += `{\\${k}${ Math.round((length) / 10) }}` + remains;
 			}
@@ -5876,7 +5884,6 @@ window.setAssKaraokeFromSmi = function(kf=false) {
 			}
 		});
 		comment += "-->\n";
-		console.log(comment);
 		group.smis[0].text = comment + group.smis[0].text;
 	});
 	
@@ -5886,5 +5893,6 @@ window.setAssKaraokeFromSmi = function(kf=false) {
 	});
 	
 	smiFile.body = smis;
-	editor.cm.setValue(smiFile.toText());
+	editor.setValue(smiFile.toText());
+	editor.render();
 }

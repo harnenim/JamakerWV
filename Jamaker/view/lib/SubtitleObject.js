@@ -762,6 +762,11 @@ Subtitle.getFontRatio = function(fn) {
 	if (metric.ratio) {
 		return metric.ratio;
 	}
+	if (fn == "Meiryo") {
+		// 예외처리... 계산 결과가 많이 튐...
+		return metric.ratio = 0.95;
+	}
+	// TODO: fontBoundingBoxAscent 기반이 아닌 다른 방식이 있을 것 같음
 	return metric.ratio = this.getMetrics("맑은 고딕").fontBoundingBoxAscent / metric.fontBoundingBoxAscent;
 }
 Subtitle.Width =
